@@ -4,8 +4,10 @@ from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from .models import Song
 from rest_framework.pagination import PageNumberPagination
-from .serializers import SongSerializer
+from .serializers import DetailedSongSerializer, SongSerializer
 from albums.models import Album
+from rest_framework.generics import ListCreateAPIView
+import ipdb
 
 
 class SongView(APIView, PageNumberPagination):
@@ -34,3 +36,21 @@ class SongView(APIView, PageNumberPagination):
         serializer.save(album=album)
 
         return Response(serializer.data, status.HTTP_201_CREATED)
+
+
+class SongView(ListCreateAPIView):
+    queryset = Song.objects.all()
+    serializer_class = SongSerializer
+
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticatedOrReadOnly]
+
+    def perform_create(self, serializer):
+        album = get_object_or_404(Album, pk=self.kwargs["pk"])
+        # ipdb.set_trace()
+        serializer.save(album=album)
+
+    # def get_serializer_class(self):
+    #     if self.request.method == "POST":
+    #         return DetailedSongSerializer
+    #     return SongSerializer
